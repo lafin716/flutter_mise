@@ -3,7 +3,9 @@ import 'package:flutter_mise/const/data.dart';
 import 'package:flutter_mise/model/stat_model.dart';
 
 class StatRepository {
-  static Future<List<StatModel>> fetchData() async {
+  static Future<List<StatModel>> fetchData({
+    required ItemCode itemCode,
+  }) async {
     final response = await Dio().get(
       'http://apis.data.go.kr/B552584/ArpltnStatsSvc/getCtprvnMesureLIst',
       queryParameters: {
@@ -11,7 +13,7 @@ class StatRepository {
         'returnType': 'json',
         'pageNo': 1,
         'numOfRows': 30,
-        'itemCode': 'PM10',
+        'itemCode': itemCode.name,
         'dataGubun': 'HOUR',
         'searchCondition': 'WEEK',
       },

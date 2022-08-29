@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mise/const/colors.dart';
 import 'package:flutter_mise/model/stat_model.dart';
 import 'package:flutter_mise/model/status_model.dart';
+import 'package:flutter_mise/utils/data_utils.dart';
 
 class MainAppBar extends StatelessWidget {
   final StatusModel status;
   final StatModel stat;
+  final String region;
 
   const MainAppBar({
     required this.status,
     required this.stat,
+    required this.region,
     Key? key,
   }) : super(key: key);
 
@@ -33,11 +35,11 @@ class MainAppBar extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  '서울',
+                  region,
                   style: ts,
                 ),
                 Text(
-                  getTimeFromDateTime(
+                  DataUtils.getTimeFromDateTime(
                     dateTime: stat.dataTime,
                   ),
                   style: ts.copyWith(
@@ -75,11 +77,5 @@ class MainAppBar extends StatelessWidget {
     );
   }
 
-  String getTimeFromDateTime({required DateTime dateTime}) {
-    return '${dateTime.year}-${getTimeFormat(dateTime.month)}-${getTimeFormat(dateTime.day)} ${getTimeFormat(dateTime.hour)}:${getTimeFormat(dateTime.minute)}';
-  }
 
-  String getTimeFormat(int number) {
-    return number.toString().padLeft(2, '0');
-  }
 }

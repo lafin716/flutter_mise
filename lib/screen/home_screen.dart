@@ -4,9 +4,10 @@ import 'package:flutter_mise/component/hourly_card.dart';
 import 'package:flutter_mise/component/main_app_bar.dart';
 import 'package:flutter_mise/component/main_drawer.dart';
 import 'package:flutter_mise/const/colors.dart';
-import 'package:flutter_mise/const/status_level.dart';
+import 'package:flutter_mise/const/regions.dart';
 import 'package:flutter_mise/model/stat_model.dart';
 import 'package:flutter_mise/repository/stat_repository.dart';
+import 'package:flutter_mise/utils/data_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,16 +17,41 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Future<List<StatModel>> fetchData() async {
-    return await StatRepository.fetchData();
+  String region = regions[0];
+
+  Future<Map<ItemCode, List<StatModel>>> fetchData() async {
+    Map<ItemCode, List<StatModel>> stats = {};
+
+    List<Future> futures = [];
+
+    for (ItemCode itemCode in ItemCode.values) {
+      futures.add(StatRepository.fetchData(
+        itemCode: itemCode,
+      ));
+    }
+
+    final results = await Future.wait(futures);
+    for (int i = 0; i < results.length; i++) {
+      final key = ItemCode.values[i];
+      final value = results[i];
+
+      stats.addAll({
+        key: value,
+      });
+    }
+
+    return stats;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: primaryColor,
-      drawer: MainDrawer(),
-      body: FutureBuilder<List<StatModel>>(
+      drawer: MainDrawer(
+        selectedRegion: region,
+        onRegionTap: onRegionTap,
+      ),
+      body: FutureBuilder<Map<ItemCode, List<StatModel>>>(
           future: fetchData(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -40,18 +66,20 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
 
-            List<StatModel> stats = snapshot.data!;
-            StatModel recentStats = stats[0];
+            Map<ItemCode, List<StatModel>> stats = snapshot.data!;
+            StatModel pm10RecentStat = stats[ItemCode.PM10]![0];
 
-            final status = statusLevel.where(
-              (element) => element.minFineDust < recentStats.seoul,
-            ).last;
+            final status = DataUtils.getStatusFromItemCodeAndValue(
+              itemCode: ItemCode.PM10,
+              value: pm10RecentStat.seoul,
+            );
 
             return CustomScrollView(
               slivers: [
                 MainAppBar(
-                  stat: recentStats,
+                  stat: pm10RecentStat,
                   status: status,
+                  region: region,
                 ),
                 SliverToBoxAdapter(
                   child: Column(
@@ -69,5 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }),
     );
+  }
+
+  onRegionTap(String region) {
+    setState(() {
+      this.region = region;
+    });
+    Navigator.of(context).pop();
   }
 }
