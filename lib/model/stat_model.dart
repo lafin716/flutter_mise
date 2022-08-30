@@ -58,4 +58,60 @@ class StatModel {
     // ItemCode.CO 로 표시된다
     return ItemCode.values.firstWhere((element) => element.name == raw);
   }
+
+  double getLevelFromRegion(String region) {
+    if (region == '서울') {
+      return seoul;
+    }
+    if (region == '경기') {
+      return gyeonggi;
+    }
+    if (region == '대구') {
+      return daegu;
+    }
+    if (region == '충남') {
+      return chungnam;
+    }
+    if (region == '인천') {
+      return incheon;
+    }
+    if (region == '대전') {
+      return daejeon;
+    }
+    if (region == '경북') {
+      return gyeongbuk;
+    }
+    if (region == '세종') {
+      return sejong;
+    }
+    if (region == '광주') {
+      return gwangju;
+    }
+    if (region == '전북') {
+      return jeonbuk;
+    }
+    if (region == '강원') {
+      return gangwon;
+    }
+    if (region == '울산') {
+      return ulsan;
+    }
+    if (region == '전남') {
+      return jeonnam;
+    }
+    if (region == '부산') {
+      return busan;
+    }
+    if (region == '제주') {
+      return jeju;
+    }
+    if (region == '충북') {
+      return chungbuk;
+    }
+    if (region == '경남') {
+      return gyeongnam;
+    }
+
+    throw Exception('알 수 없는 지역입니다.');
+  }
 }

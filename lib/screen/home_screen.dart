@@ -5,6 +5,7 @@ import 'package:flutter_mise/component/main_app_bar.dart';
 import 'package:flutter_mise/component/main_drawer.dart';
 import 'package:flutter_mise/const/colors.dart';
 import 'package:flutter_mise/const/regions.dart';
+import 'package:flutter_mise/model/stat_and_status_model.dart';
 import 'package:flutter_mise/model/stat_model.dart';
 import 'package:flutter_mise/repository/stat_repository.dart';
 import 'package:flutter_mise/utils/data_utils.dart';
@@ -46,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryColor,
       drawer: MainDrawer(
         selectedRegion: region,
         onRegionTap: onRegionTap,
@@ -74,26 +74,53 @@ class _HomeScreenState extends State<HomeScreen> {
               value: pm10RecentStat.seoul,
             );
 
-            return CustomScrollView(
-              slivers: [
-                MainAppBar(
-                  stat: pm10RecentStat,
-                  status: status,
-                  region: region,
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      CategoryCard(),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      HourlyCard(),
-                    ],
+            final statAndStatusModels = stats.keys.map(
+                  (key) {
+                final value = stats[key]!;
+                final stat = value[0];
+
+                return StatAndStatusModel(
+                  itemCode: key,
+                  status: DataUtils.getStatusFromItemCodeAndValue(
+                    value: stat.getLevelFromRegion(region),
+                    itemCode: key,
                   ),
-                )
-              ],
+                  stat: stat,
+                );
+              },
+            ).toList();
+
+            return Container(
+              color: status.primaryColor,
+              child: CustomScrollView(
+                slivers: [
+                  MainAppBar(
+                    stat: pm10RecentStat,
+                    status: status,
+                    region: region,
+                  ),
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CategoryCard(
+                          region: region,
+                          models: statAndStatusModels,
+                          darkColor: status.darkColor,
+                          lightColor: status.lightColor,
+                        ),
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        HourlyCard(
+                          darkColor: status.darkColor,
+                          lightColor: status.lightColor,
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
             );
           }),
     );

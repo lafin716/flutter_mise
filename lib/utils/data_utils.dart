@@ -23,7 +23,7 @@ class DataUtils {
     }
   }
 
-  static String itemCodeToKrString({
+  static String getItemCodeToKrString({
     required ItemCode itemCode,
   }) {
     switch (itemCode) {

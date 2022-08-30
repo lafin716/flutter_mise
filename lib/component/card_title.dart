@@ -3,8 +3,10 @@ import 'package:flutter_mise/const/colors.dart';
 
 class CardTitle extends StatelessWidget {
   final String title;
+  final Color backgroundColor;
 
   const CardTitle({
+    required this.backgroundColor,
     required this.title,
     Key? key,
   }) : super(key: key);
@@ -13,7 +15,7 @@ class CardTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: darkColor,
+        color: backgroundColor,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16.0),
           topRight: Radius.circular(16.0),
