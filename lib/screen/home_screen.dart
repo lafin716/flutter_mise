@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mise/container/category_card.dart';
 import 'package:flutter_mise/container/hourly_card.dart';
@@ -38,23 +39,53 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchData() async {
-    List<Future> futures = [];
+    try {
+      final now = DateTime.now();
+      final fetchTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        now.hour,
+      );
 
-    for (ItemCode itemCode in ItemCode.values) {
-      futures.add(StatRepository.fetchData(
-        itemCode: itemCode,
-      ));
-    }
+      final box = Hive.box<StatModel>(ItemCode.PM10.name);
+      final recent = box.values.last;
 
-    final results = await Future.wait(futures);
-    for (int i = 0; i < results.length; i++) {
-      final key = ItemCode.values[i];
-      final value = results[i];
-      final box = Hive.box<StatModel>(key.name);
-
-      for (StatModel stat in value) {
-        box.put(stat.dataTime.toString(), stat);
+      if (recent.dataTime.isAtSameMomentAs(fetchTime)) {
+        print('이미 최신 데이터가 있습니다.');
+        return;
       }
+
+      List<Future> futures = [];
+
+      for (ItemCode itemCode in ItemCode.values) {
+        futures.add(StatRepository.fetchData(
+          itemCode: itemCode,
+        ));
+      }
+
+      final results = await Future.wait(futures);
+      for (int i = 0; i < results.length; i++) {
+        final key = ItemCode.values[i];
+        final value = results[i];
+        final box = Hive.box<StatModel>(key.name);
+
+        for (StatModel stat in value) {
+          box.put(stat.dataTime.toString(), stat);
+        }
+
+        final allKeys = box.keys.toList();
+        if (allKeys.length > 24) {
+          final deleteKeys = allKeys.sublist(0, allKeys.length - 24);
+          box.deleteAll(deleteKeys);
+        }
+      }
+    } on DioError catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('네트워크 연결이 불안정 합니다.'),
+        ),
+      );
     }
   }
 
@@ -89,46 +120,51 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           body: Container(
             color: status.primaryColor,
-            child: CustomScrollView(
-              controller: scrollController,
-              slivers: [
-                MainAppBar(
-                  stat: stat,
-                  status: status,
-                  region: region,
-                  dateTime: stat.dataTime,
-                  isExpended: isExpended,
-                ),
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      CategoryCard(
-                        region: region,
-                        darkColor: status.darkColor,
-                        lightColor: status.lightColor,
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      ...ItemCode.values.map((itemCode) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: HourlyCard(
-                            darkColor: status.darkColor,
-                            lightColor: status.lightColor,
-                            region: region,
-                            itemCode: itemCode,
-                          ),
-                        );
-                      }).toList(),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                    ],
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await fetchData();
+              },
+              child: CustomScrollView(
+                controller: scrollController,
+                slivers: [
+                  MainAppBar(
+                    stat: stat,
+                    status: status,
+                    region: region,
+                    dateTime: stat.dataTime,
+                    isExpended: isExpended,
                   ),
-                ),
-              ],
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CategoryCard(
+                          region: region,
+                          darkColor: status.darkColor,
+                          lightColor: status.lightColor,
+                        ),
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        ...ItemCode.values.map((itemCode) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: HourlyCard(
+                              darkColor: status.darkColor,
+                              lightColor: status.lightColor,
+                              region: region,
+                              itemCode: itemCode,
+                            ),
+                          );
+                        }).toList(),
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
