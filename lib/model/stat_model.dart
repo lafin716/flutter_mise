@@ -1,32 +1,86 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
+part 'stat_model.g.dart';
+
+@HiveType(typeId: 2)
 enum ItemCode {
+  @HiveField(0)
   PM10,
+  @HiveField(1)
   PM25,
+  @HiveField(2)
   NO2,
+  @HiveField(3)
   O3,
+  @HiveField(4)
   CO,
+  @HiveField(5)
   SO2,
 }
 
+@HiveType(typeId: 1)
 class StatModel {
+  @HiveField(0)
   final double daegu;
+  @HiveField(1)
   final double chungnam;
+  @HiveField(2)
   final double incheon;
+  @HiveField(3)
   final double daejeon;
+  @HiveField(4)
   final double gyeongbuk;
+  @HiveField(5)
   final double sejong;
+  @HiveField(6)
   final double gwangju;
+  @HiveField(7)
   final double jeonbuk;
+  @HiveField(8)
   final double gangwon;
+  @HiveField(9)
   final double ulsan;
+  @HiveField(10)
   final double jeonnam;
+  @HiveField(11)
   final double seoul;
+  @HiveField(12)
   final double busan;
+  @HiveField(13)
   final double jeju;
+  @HiveField(14)
   final double chungbuk;
+  @HiveField(15)
   final double gyeongnam;
+  @HiveField(16)
   final double gyeonggi;
+  @HiveField(17)
   final ItemCode itemCode;
+  @HiveField(18)
   final DateTime dataTime;
+
+
+  StatModel({
+    required this.daegu,
+    required this.chungnam,
+    required this.incheon,
+    required this.daejeon,
+    required this.gyeongbuk,
+    required this.sejong,
+    required this.gwangju,
+    required this.jeonbuk,
+    required this.gangwon,
+    required this.ulsan,
+    required this.jeonnam,
+    required this.seoul,
+    required this.busan,
+    required this.jeju,
+    required this.chungbuk,
+    required this.gyeongnam,
+    required this.gyeonggi,
+    required this.itemCode,
+    required this.dataTime
+  });
 
   StatModel.fromJson({required Map<String, dynamic> json}):
         daegu = double.parse(json['daegu'] ?? '0'),
